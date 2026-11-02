@@ -1,3 +1,3 @@
-versao=0.4a
+versao=0.4.1
 apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP.apk
-novidades=Removida a importação de fotografia e assiduidade da bilheteira. Mantidos o cartão digital da Casa, as quotas e o número FC Porto registado no perfil.
+novidades=Fotografia e assiduidade FC Porto automáticas quando existe sessão válida na bilheteira e correspondência do número de sócio. Consulta de jogos e temporadas no cartão digital.
