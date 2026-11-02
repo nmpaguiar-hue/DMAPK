@@ -1,6 +1,3 @@
-versao=0.2
-apk=
-novidades=Novo cabeçalho, bilheteira integrada, saudação personalizada e melhorias na navegação.
-
-# Colocar em apk= a ligação HTTPS direta do APK publicado no GitHub Releases.
-# Quando existir uma nova versão, atualizar versao, apk e novidades.
+versao=0.3a
+apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP.apk
+novidades=Correção do logótipo intermédio no arranque e apresentação mais rápida do splash.
