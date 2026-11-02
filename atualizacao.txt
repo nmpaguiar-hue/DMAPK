@@ -1,3 +1,3 @@
-versao=0.3A
+versao=0.4
 apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP.apk
-novidades=Splash de quatro segundos. Partilha de notícias por Facebook, Instagram, X e WhatsApp, cartão de partilha e opção de copiar ligação.
+novidades=Cartão digital de sócio da Casa, consulta de quotas e validade, número FC Porto para sócios de ambos e importação dos dados disponíveis da bilheteira após início de sessão.
