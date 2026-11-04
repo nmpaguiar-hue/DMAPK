@@ -1,0 +1,20 @@
+PUBLICAR A VERSÃO 1.0
+
+Esta edição atualiza diretamente as versões 0.5 a 0.15 de teste que tens instalado. Mantém a identidade Android e a assinatura dessas versões para preservar sessão e dados. O nome visível passa a Dragões Marcoenses, versão 1.0, código 35. O sufixo interno .teste mantém-se exclusivamente por compatibilidade técnica.
+
+1. No repositório nmpaguiar-hue/DMAPK, ramo main, colocar PRIMEIRO DMAPP_CASA.apk na raiz.
+2. Confirmar que o APK ficou disponível para descarregar.
+3. Colocar DEPOIS atualizacao-casa.txt na mesma raiz, sem alterar os nomes.
+4. Instalar agora DMAPP_CASA.apk manualmente sobre a 0.15, sem desinstalar. As edições de teste anteriores tinham o verificador desligado.
+5. Nesta versão, Explorar > Versão 1.0 permite verificar atualizações. A consulta também ocorre automaticamente ao abrir a app.
+6. Nas próximas versões, incrementar a versão e o código Android, assinar sempre com a mesma chave, publicar primeiro o APK e depois atualizar versao e novidades no TXT.
+
+O Android pede confirmação para instalar. Não existe instalação silenciosa. Na primeira utilização pode ser necessário autorizar a origem de instalação e abrir a transferência concluída. A comparação de versões evita propor versões antigas.
+
+Não substituir DMAPP.apk nem atualizacao.txt, usados pelas versões antigas do pacote pt.dragoesmarcoenses.casa. Essas versões têm outra identidade e assinatura. A palavra-passe da chave original não estava disponível nesta sessão, pelo que esta edição não foi assinada com essa chave. O canal novo evita que as instalações antigas recebam um APK incompatível.
+
+FONTES PRIVADAS: Casa_FC_Porto_Fontes_Privadas.zip contém chaves. Não publicar esse ficheiro. As fontes atuais desta edição estão em app-test; esse nome de pasta é histórico. Compilar com app-test/build.sh. Guardar a chave usada nessas fontes para todas as próximas versões.
+
+EVENTOS: só status active com data válida. Com data final, desaparecem nessa hora; sem data final válida, no fim do dia de início em Europe/Lisbon. Eventos sem data ficam ocultos. O Dia do Clube fica até 07/11/2026 às 18h00. A app reavalia os eventos a cada minuto enquanto aberta. Eventos prolongados com data final futura continuam visíveis.
+
+VALIDAÇÃO: compilação limpa, assinatura v1/v2/v3 verificada e certificado igual ao APK 0.15. Testes existentes JS passaram, mais 15 verificações de datas e versões. Sem instalação em dispositivo ou validação visual em emulador nesta sessão. Confirmar o aspeto, instalação por cima, emissões e fluxo de transferência num telefone antes de divulgação alargada.
