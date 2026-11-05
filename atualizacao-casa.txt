@@ -1,3 +1,3 @@
-versao=1.1.7
+versao=1.1.8
 apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk
-novidades=Avisos com o tema da App, histórico completo e pedido inicial de notificações.
+novidades=Passaporte Portista com carimbos dos jogos e estimativa de distâncias.
