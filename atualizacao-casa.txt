@@ -1,3 +1,3 @@
-versao=1.1
+versao=1.1.2
 apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk
-novidades=FC Porto TV, previsão horária no Dragão, avisos de jogos e aniversários, ficha de sócio e validade até 10 de novembro de 2026.
+novidades=Previsão meteorológica no estádio dos jogos em casa e fora.
