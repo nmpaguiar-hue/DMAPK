@@ -1,3 +1,3 @@
-versao=1.0
+versao=1.1
 apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk
-novidades=Modo Dia de Jogo redesenhado, eventos ocultados automaticamente ao terminar, histórico de novidades, Porto Canal em direto, carteira preferida e atualizações da aplicação.
+novidades=FC Porto TV, previsão horária no Dragão, avisos de jogos e aniversários, ficha de sócio e validade até 10 de novembro de 2026.
