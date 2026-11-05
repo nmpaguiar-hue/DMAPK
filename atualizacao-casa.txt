@@ -1,3 +1,3 @@
-versao=1.1.8
+versao=1.1.9
 apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk
-novidades=Passaporte Portista com carimbos dos jogos e estimativa de distâncias.
+novidades=Passaporte com carimbos em ordem cronológica e dados de jogos, estádios e emblemas incluídos na App.
