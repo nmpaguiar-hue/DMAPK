@@ -1,3 +1,3 @@
-versao=1.1.5
+versao=1.1.6
 apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk
-novidades=Fotografia maior no canto superior direito do cartão de sócio.
+novidades=Porto Canal num toque, consulta guardada de quotas e assiduidade e novo alinhamento de Porto em Campo.
