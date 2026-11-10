@@ -1,5 +1,5 @@
-versao=1.1.38
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.38
-novidades=INVICTA 1.1.38: informações técnicas da aplicação, histórico integral de 41 versões recuperado e correções dos ecrãs Novidades, Informações e Aspeto.
+versao=1.1.43
+apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.43
+novidades=INVICTA 1.1.43: Programação Porto Canal com Agora e próximos programas e nova secção publicitária no início.
 critica=nao
 versao_minima=1.1.31
