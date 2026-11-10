@@ -1,3 +1,5 @@
-versao=1.1.33
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.33
-novidades=Novo emblema do USC Paredes, novo ícone monocromático e acompanhamento preparado para a Taça de Portugal. Validade até 20 de novembro de 2026.
+versao=1.1.38
+apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.38
+novidades=INVICTA 1.1.38: informações técnicas da aplicação, histórico integral de 41 versões recuperado e correções dos ecrãs Novidades, Informações e Aspeto.
+critica=nao
+versao_minima=1.1.31
