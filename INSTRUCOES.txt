@@ -1,1 +1,17 @@
-Publicar os dois ficheiros na raiz do repositório publico DMAPK, de preferência num unico commit. Não publicar só o ficheiro de versão: confirmar primeiro que o APK corresponde à Build 75.
+DRAGÕES MARCOENSES | INVICTA 1.1.38 | BUILD 74
+
+ATUALIZAÇÃO PELA PRÓPRIA APP
+
+1. Abrir o repositório PÚBLICO nmpaguiar-hue/DMAPK na branch main.
+2. Selecionar Add file > Upload files.
+3. Descompactar este ZIP e enviar, EM CONJUNTO, APENAS ESTES DOIS FICHEIROS PARA A RAIZ DO REPOSITÓRIO:
+   DMAPP_CASA.apk
+   atualizacao-casa.txt
+4. Confirmar a substituição dos dois ficheiros e terminar em Commit changes.
+5. Aceder à app 1.1.37 e a Explorar > Versão / Verificar atualizações.
+
+Não carregar LEIA-ME.txt nem qualquer chave de assinatura.
+Não carregar este ZIP fechado; extrair primeiro.
+
+O instalador já se encontra assinado com a chave original da aplicação (Android V1/V2/V3).
+O anúncio deve ser publicado apenas em conjunto com o novo APK. O modo crítica permanece desativado.
