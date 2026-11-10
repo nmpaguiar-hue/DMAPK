@@ -1,5 +1,5 @@
-versao=1.1.43
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.43
-novidades=INVICTA 1.1.43: Programação Porto Canal com Agora e próximos programas e nova secção publicitária no início.
+versao=1.1.44
+apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.44
+novidades=Imagens publicitárias em alta definição. Melhor apresentação e programação Porto Canal sem referência à fonte nem abertura de site externo.
 critica=nao
 versao_minima=1.1.31
