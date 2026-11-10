@@ -1,5 +1,5 @@
-versao=1.1.39
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.39
-novidades=Janelas de diagnóstico e atualização redesenhadas com identidade azul marinho, relatório de erros datado com opção de limpeza e histórico de versões corrigido.
+versao=1.1.40
+apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.40
+novidades=Sincronização automática de resultados e emblemas no Passaporte, cache local de emblemas, correspondência de nomes de equipas e correção do Vitória SC 1-2 FC Porto.
 critica=nao
 versao_minima=1.1.31
