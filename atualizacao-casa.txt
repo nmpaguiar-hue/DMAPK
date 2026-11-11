@@ -1,5 +1,5 @@
-versao=1.1.48
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.48
-novidades=INVICTA 1.1.48: Publicidade em melhor definição, logótipos inteiros e menos espaço entre Porto Canal e próximo jogo.
+versao=1.1.52
+apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.52
+novidades=INVICTA 1.1.52: Porto em Campo ampliado, editor de fotografia com zoom e arrastamento, janelas redesenhadas.
 critica=nao
 versao_minima=1.1.31
