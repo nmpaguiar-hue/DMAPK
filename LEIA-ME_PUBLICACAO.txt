@@ -1,1 +1,0 @@
-Carregar os dois ficheiros DMAPP_CASA.apk e atualizacao-casa.txt no repositório público DMAPK, substituindo os anteriores no mesmo commit, apenas depois dos testes no telemóvel. Não incluir o ZIP completo nem a chave de assinatura.

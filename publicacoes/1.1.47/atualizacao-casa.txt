@@ -1,5 +1,0 @@
-versao=1.1.47
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.47
-novidades=INVICTA 1.1.47: Novo Passaporte do Dragão com coleção, próximos carimbos e níveis de participação.
-critica=nao
-versao_minima=1.1.31
