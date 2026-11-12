@@ -226,7 +226,7 @@ public class MainActivity extends Activity {
             if(x==null||!("aprovado".equals(x.optString("status"))||"aguarda_fc".equals(x.optString("status")))) {
                 alert("Validação obrigatória","É necessário aprovar o registo antes de preparar a inscrição.");return;
             }
-            if ("aprovado".equals(x.optString("status"))) changeStatus(currentMemberId,"aguarda_fc");
+            // O estado aguarda_fc só pode ser atribuído após confirmação expressa da submissão.
         }
         portalVisible=true;portalLayer.setVisibility(View.VISIBLE);
         portalTitle.setText(isSource?"Dragões Marcoenses":"Comunidade FC Porto");
@@ -300,7 +300,11 @@ public class MainActivity extends Activity {
             rec.put("id",id);
             String[] attrs={"name","number","email","fcp","join","birth","ident","note"};
             for(String a:attrs){if(input.has(a)) {String v=input.optString(a).trim();if(!imported||!v.isEmpty()||index<0)rec.put(a,v);}}
-            if(index<0){rec.put("status","novo");rec.put("createdAt",now());}
+            if(index<0){
+                boolean baseReady=getSharedPreferences(PREFS,MODE_PRIVATE).getBoolean("baseline_initialized",false);
+                rec.put("status",imported&&!baseReady?"referencia":"novo");
+                rec.put("createdAt",now());
+            }
             rec.put("updatedAt",now());
             if(index<0)data.put(rec);else data.put(index,rec);
             storeList(data);
@@ -308,7 +312,7 @@ public class MainActivity extends Activity {
         } catch(Exception e){return jsonReply(false,"Não foi possível guardar o registo.");}
     }
     private synchronized String changeStatus(String id,String status){
-        if(!java.util.Arrays.asList("novo","aprovado","aguarda_fc","concluido","rejeitado").contains(status))return jsonReply(false,"Estado inválido");
+        if(!java.util.Arrays.asList("novo","referencia","aprovado","aguarda_fc","concluido","rejeitado").contains(status))return jsonReply(false,"Estado inválido");
         try{
             JSONArray list=readList();
             for(int i=0;i<list.length();i++){
@@ -340,6 +344,22 @@ public class MainActivity extends Activity {
             try{return save(new JSONObject(json),false);}catch(Exception e){return jsonReply(false,"Dados inválidos");}
         }
         @JavascriptInterface public String setStatus(String id,String status){return changeStatus(id,status);}
+        @JavascriptInterface public String establishBaseline(){
+            synchronized(MainActivity.this){
+                JSONArray list=readList();
+                try {
+                    for(int i=0;i<list.length();i++){
+                        JSONObject x=list.optJSONObject(i);
+                        if(x!=null&&"novo".equals(x.optString("status","novo"))){
+                            x.put("status","referencia"); x.put("updatedAt",now());
+                        }
+                    }
+                    storeList(list);
+                    getSharedPreferences(PREFS,MODE_PRIVATE).edit().putBoolean("baseline_initialized",true).apply();
+                    return jsonReply(true,"");
+                }catch(Exception e){return jsonReply(false,"Não foi possível estabelecer a base.");}
+            }
+        }
         @JavascriptInterface public void clearMembers(){getSharedPreferences(PREFS,MODE_PRIVATE).edit().remove("records").apply();}
         @JavascriptInterface public void openPortal(String kind,String id){runOnUiThread(()->MainActivity.this.openPortal(kind,id));}
         @JavascriptInterface public void importFile(){runOnUiThread(()->{
@@ -424,8 +444,11 @@ public class MainActivity extends Activity {
                         }catch(Exception e){stopAll("Não foi possível avançar a paginação.");}
                     });
                 }else if(all){
-                    stopAll("Importação terminada. "+after+" registos locais, "+newCount+" novos nesta operação.");
-                    alert("Importação terminada","Foram lidas "+pageCount+" páginas.\n\nNovos registos: "+newCount+"\nTotal de fichas locais: "+after+"\n\nAbre Sócios para validar.");
+                    if(!getSharedPreferences(PREFS,MODE_PRIVATE).getBoolean("baseline_initialized",false)){
+                        getSharedPreferences(PREFS,MODE_PRIVATE).edit().putBoolean("baseline_initialized",true).apply();
+                    }
+                    stopAll("Importação terminada. "+after+" registos locais, "+newCount+" acrescentados.");
+                    alert("Importação terminada","Foram lidas "+pageCount+" páginas.\n\nRegistos acrescentados: "+newCount+"\nTotal local: "+after+"\n\nOs registos iniciais ficam como base de referência. Só as entradas posteriores necessitam de validação.");
                 }else {
                     new AlertDialog.Builder(this).setTitle("Página importada")
                         .setMessage("Registos identificados nesta página: "+arr.length()+"\nNovos registos: "+Math.max(0,after-before)+"\n\nPara importar todas as páginas, utiliza «Importar lista».")
