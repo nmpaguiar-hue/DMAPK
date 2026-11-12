@@ -2,6 +2,8 @@ name: Build DM Sync APK
 on:
   push:
     branches: [dm-sync-prototype]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   build:
