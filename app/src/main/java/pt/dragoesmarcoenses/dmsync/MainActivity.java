@@ -64,9 +64,9 @@ public class MainActivity extends Activity {
     private LinearLayout portalLayer, buttonBar;
     private TextView portalTitle, progressText;
     private Button importPageButton, importAllButton, importDetailsButton, prefillButton;
-    private boolean portalVisible, isSource, importing;
+    private boolean portalVisible, isSource, importing, autoFillBusy, autoFillRequested;
     private String currentMemberId = "", lastPageKey = "";
-    private int pageCount = 0, newCount = 0;
+    private int pageCount = 0, newCount = 0, autoFillSteps = 0;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private final String extractionScript = "(function(){"
@@ -168,8 +168,11 @@ public class MainActivity extends Activity {
         portal.setWebChromeClient(new WebChromeClient());
         portal.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView v,String url) {
-                progressText.setText(isSource?"Sessão no portal · importar após iniciar sessão":"Sessão FC Porto · validação manual");
+                progressText.setText(isSource?"Inicia sessão e importa os membros":"Portal FC Porto · confirmação final obrigatória");
                 updateButtons();
+                if (!isSource && autoFillRequested && !autoFillBusy) handler.postDelayed(()->{
+                    if(portalVisible && !isSource && !autoFillBusy) prefillCurrent();
+                },1250);
             }
             @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
                 Uri u=req.getUrl();
@@ -191,7 +194,7 @@ public class MainActivity extends Activity {
         importPageButton = smallButton("Importar página",BLUE);
         importAllButton = smallButton("Importar lista",Color.rgb(31,93,152));
         importDetailsButton = smallButton("Ler ficha",Color.rgb(28,71,127));
-        prefillButton = smallButton("Preencher campos",BLUE);
+        prefillButton = smallButton("Preencher dados",BLUE);
         buttonBar.addView(importPageButton,new LinearLayout.LayoutParams(0,dp(47),1f));
         LinearLayout.LayoutParams gap=new LinearLayout.LayoutParams(0,dp(47),1f);gap.leftMargin=dp(6);
         buttonBar.addView(importAllButton,gap);
@@ -227,7 +230,10 @@ public class MainActivity extends Activity {
         }
         portalVisible=true;portalLayer.setVisibility(View.VISIBLE);
         portalTitle.setText(isSource?"Dragões Marcoenses":"Comunidade FC Porto");
-        importing=false;updateButtons();
+        importing=false;autoFillBusy=false;autoFillSteps=0;
+        autoFillRequested=!isSource&&!currentMemberId.isEmpty();
+        updateButtons();
+        if(!isSource)portal.evaluateJavascript("window.__dmSyncFlowMode='';window.__dmSyncLookupAttempted=false;",null);
         String url=isSource?SOURCE:TARGET;
         Uri u=Uri.parse(portal.getUrl()==null?"":portal.getUrl());
         String host=u.getHost()==null?"":u.getHost();
@@ -236,7 +242,7 @@ public class MainActivity extends Activity {
         progressText.setText("A carregar sessão segura...");
     }
     private void closePortal() {
-        importing=false;portalVisible=false;portalLayer.setVisibility(View.GONE);
+        importing=false;autoFillBusy=false;autoFillRequested=false;portalVisible=false;portalLayer.setVisibility(View.GONE);
         ui.evaluateJavascript("window.refreshAll && window.refreshAll()",null);
     }
     @Override public void onBackPressed() {
@@ -342,34 +348,90 @@ public class MainActivity extends Activity {
             startActivityForResult(i,24);
         });}
     }
+
+    private String assetJS(String asset) {
+        try (InputStream input=getAssets().open(asset);ByteArrayOutputStream output=new ByteArrayOutputStream()) {
+            byte[] buf=new byte[4096];int n;
+            while((n=input.read(buf))>=0)output.write(buf,0,n);
+            return new String(output.toByteArray(),StandardCharsets.UTF_8);
+        } catch(Exception error) { return "(function(){return JSON.stringify({error:'Código de integração não encontrado'})})()"; }
+    }
+    private JSONObject parseJsJson(String value) throws Exception {
+        Object token=new JSONTokener(value).nextValue();
+        return new JSONObject(String.valueOf(token));
+    }
+    private String keyOf(JSONArray arr){
+        StringBuilder b=new StringBuilder();
+        if(arr==null)return "";
+        for(int i=0;i<arr.length();i++){
+            JSONObject item=arr.optJSONObject(i);if(item!=null)b.append(item.optString("number")).append('|');
+        }
+        return b.toString();
+    }
+    private void waitPageChanged(String previous,int attempt){
+        if(!importing||!portalVisible)return;
+        handler.postDelayed(()->{
+            if(!importing||!portalVisible)return;
+            portal.evaluateJavascript("window.__dmPageOperation='scan';"+assetJS("page_scan.js"),value->{
+                try{
+                    JSONObject snapshot=parseJsJson(value);
+                    JSONArray items=snapshot.optJSONArray("items");
+                    String key=keyOf(items);
+                    if(!key.isEmpty()&&!previous.equals(key)){importPage(true);return;}
+                    if(attempt<28){waitPageChanged(previous,attempt+1);}
+                    else stopAll("Não foi possível confirmar a mudança de página. Podes avançar manualmente e voltar a importar.");
+                }catch(Exception e){stopAll("Erro ao verificar a página seguinte.");}
+            });
+        },450);
+    }
+
     private void importPage(boolean all) {
-        if(!onRightHost(true)){alert("Importação indisponível","Inicia sessão na gestão de membros dos Dragões Marcoenses antes de importar.");importing=false;updateButtons();return;}
-        portal.evaluateJavascript(extractionScript,value->{
-            try{
-                Object parsed=new JSONTokener(value).nextValue();
-                JSONObject payload=new JSONObject(String.valueOf(parsed));
-                String error=payload.optString("error","");
-                if(!error.isEmpty()){progressText.setText(error);importing=false;updateButtons();return;}
-                JSONArray arr=payload.optJSONArray("items");if(arr==null)arr=new JSONArray();
-                StringBuilder fingerprint=new StringBuilder();
-                for(int i=0;i<arr.length();i++){JSONObject o=arr.optJSONObject(i);if(o==null)continue;fingerprint.append(o.optString("number")).append(",");}
-                String key=fingerprint.toString();
-                if(all&&key.equals(lastPageKey)){stopAll("A lista não avançou para a página seguinte.");return;}
+        if(!onRightHost(true)){
+            alert("Importação indisponível","Abre a gestão de membros no portal dos Dragões Marcoenses e inicia sessão.");
+            importing=false;updateButtons();return;
+        }
+        portal.evaluateJavascript("window.__dmPageOperation='scan';"+assetJS("page_scan.js"),value->{
+            try {
+                JSONObject page=parseJsJson(value);
+                JSONArray arr=page.optJSONArray("items");
+                if(arr==null)arr=new JSONArray();
+                String error=page.optString("error","");
+                if(!error.isEmpty()){stopAll(error);return;}
+                String key=keyOf(arr);
+                if(all && key.equals(lastPageKey)){
+                    stopAll("A página não mudou. Ajusta a paginação no site e importa novamente.");return;
+                }
                 lastPageKey=key;
-                int before=readList().length();
-                int processed=0;
-                for(int i=0;i<arr.length();i++){JSONObject obj=arr.optJSONObject(i);if(obj!=null&&jsonReply(true,"").equals(save(obj,true)))processed++;}
-                int after=readList().length();newCount+=Math.max(0,after-before);pageCount++;
-                progressText.setText("Página "+pageCount+" · "+newCount+" novos · "+after+" registos locais");
+                int before=readList().length(), processed=0;
+                for(int i=0;i<arr.length();i++){
+                    JSONObject obj=arr.optJSONObject(i);
+                    if(obj==null)continue;
+                    JSONObject result=new JSONObject(save(obj,true));
+                    if(result.optBoolean("ok"))processed++;
+                }
+                int after=readList().length();
+                newCount+=Math.max(0,after-before);
+                pageCount++;
+                int current=page.optInt("current",0),total=page.optInt("total",0);
+                progressText.setText("Página "+(current>0?current:pageCount)+(total>0?" de "+total:"")+" · "+newCount+" novos · "+after+" locais");
                 ui.evaluateJavascript("window.refreshAll && window.refreshAll()",null);
-                if(all&&importing&&payload.optBoolean("next")&&pageCount<100&&arr.length()>0){
-                    portal.evaluateJavascript(nextScript,clicked->{
-                        if("true".equals(clicked)){handler.postDelayed(()->{if(importing&&portalVisible)importPage(true);},900);}
-                        else stopAll("Importação terminada: botão seguinte indisponível.");
+                if(all&&importing&&page.optBoolean("next")&&pageCount<200&&arr.length()>0){
+                    portal.evaluateJavascript("window.__dmPageOperation='next';"+assetJS("page_scan.js"),clicked->{
+                        try{
+                            JSONObject next=parseJsJson(clicked);
+                            if(next.optBoolean("clicked")){waitPageChanged(key,0);}
+                            else stopAll("Navegação não reconhecida. Altera a página manualmente e volta a importar.");
+                        }catch(Exception e){stopAll("Não foi possível avançar a paginação.");}
                     });
-                }else if(all){stopAll("Importação concluída. Novos: "+newCount+".");}
-                else {new AlertDialog.Builder(this).setTitle("Registos lidos").setMessage("Registos nesta página: "+arr.length()+"\nNovos na base local: "+Math.max(0,after-before)+"\n\nVerifica as fichas na área de Sócios.").setPositiveButton("OK",null).show();}
-            }catch(Exception e){stopAll("Não foi possível ler a tabela desta página.");}
+                }else if(all){
+                    stopAll("Importação terminada. "+after+" registos locais, "+newCount+" novos nesta operação.");
+                    alert("Importação terminada","Foram lidas "+pageCount+" páginas.\n\nNovos registos: "+newCount+"\nTotal de fichas locais: "+after+"\n\nAbre Sócios para validar.");
+                }else {
+                    new AlertDialog.Builder(this).setTitle("Página importada")
+                        .setMessage("Registos identificados nesta página: "+arr.length()+"\nNovos registos: "+Math.max(0,after-before)+"\n\nPara importar todas as páginas, utiliza «Importar lista».")
+                        .setPositiveButton("OK",null).show();
+                }
+            } catch(Exception e){stopAll("Não foi possível interpretar a listagem de membros.");}
         });
     }
     private void importDetails(){
@@ -412,33 +474,47 @@ public class MainActivity extends Activity {
     }
     private String jsQuoted(String s){return JSONObject.quote(s==null?"":s);}
     private void prefillCurrent() {
-        if(!onRightHost(false)){alert("Portal errado","Aceda ao portal Comunidade FC Porto antes de preencher.");return;}
-        JSONObject x=findById(currentMemberId);
-        if(x==null){alert("Registo não encontrado","Volta à lista e seleciona um membro.");return;}
-        String status=x.optString("status","novo");
-        if(!("aprovado".equals(status)||"aguarda_fc".equals(status))){alert("Validação obrigatória","Não podes preencher antes de aprovar.");return;}
-        String fcp=x.optString("fcp"),ident=x.optString("ident"),email=x.optString("email"),number=x.optString("number"),join=x.optString("join");
-        String script="(function(){"
-         +"var pairs=[[/n[uú]mero de s[oó]cio na comunidade|n[uú]mero de adepto na comunidade/i,"+jsQuoted(number)+"],"
-         +"[/data de admiss[aã]o na comunidade/i,"+jsQuoted(join)+"],"
-         +"[/n[uú]mero de identifica[cç][aã]o/i,"+jsQuoted(ident)+"],"
-         +"[/n[uú]mero de s[oó]cio/i,"+jsQuoted(fcp)+"],"
-         +"[/e-?mail/i,"+jsQuoted(email)+"]];"
-         +"function norm(x){return (x||'').replace(/\\s+/g,' ').toLowerCase()}"
-         +"var inputs=[].slice.call(document.querySelectorAll('input')).filter(i=>!i.disabled&&i.type!=='hidden'&&i.type!=='checkbox');"
-         +"var done=[];"
-         +"for(var i of inputs){var parent=i.closest('div');var label=(i.labels&&i.labels.length?i.labels[0].innerText:'')+' '+(i.getAttribute('placeholder')||'')+' '+(i.getAttribute('aria-label')||'')+' '+(i.getAttribute('name')||'')+' '+(parent?parent.innerText.slice(0,110):'');"
-         +"for(var p of pairs){if(!p[1])continue;if(p[0].test(norm(label))){var v=p[1];if(i.type==='date'&&!/^\\d{4}-\\d\\d-\\d\\d$/.test(v))break;var setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(i,v);i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));done.push(label.slice(0,32));break;}}}"
-         +"return JSON.stringify({count:done.length})})()";
+        if(autoFillBusy)return;
+        if(!onRightHost(false)){alert("Portal FC Porto","Abre a Comunidade FC Porto dentro da app.");return;}
+        JSONObject member=findById(currentMemberId);
+        if(member==null){alert("Sócio não encontrado","Escolhe um membro da base de sócios.");return;}
+        String status=member.optString("status","novo");
+        if(!("aprovado".equals(status)||"aguarda_fc".equals(status))){
+            alert("Validação obrigatória","O membro precisa de aprovação antes de iniciar o preenchimento.");return;
+        }
+        if(member.optString("number").trim().isEmpty()){
+            alert("Número em falta","Preenche o número da Casa na ficha antes de continuar.");return;
+        }
+        autoFillBusy=true;
+        String script=assetJS("fc_autofill.js").replace("__DM_MEMBER__",member.toString());
         portal.evaluateJavascript(script,value->{
+            autoFillBusy=false;
             try{
-                JSONObject result=new JSONObject(String.valueOf(new JSONTokener(value).nextValue()));
-                int n=result.optInt("count",0);
-                new AlertDialog.Builder(this).setTitle("Preenchimento assistido").setMessage(n==0?
-                    "Não foram encontrados campos compatíveis neste ecrã. Abre primeiro o formulário de Adicionar Sócio ou Adepto e volta a tentar.":
-                    "Campos preenchidos: "+n+"\n\nVerifica todos os dados e confirma manualmente no portal. A app nunca submete o formulário por ti.")
-                    .setPositiveButton("OK",null).show();
-            }catch(Exception e){alert("Preenchimento","Não foi possível identificar os campos neste ecrã.");}
+                JSONObject result=parseJsJson(value);
+                String stage=result.optString("stage","manual");
+                String message=result.optString("message","Confirma os dados no portal.");
+                progressText.setText(message);
+                if(("opened".equals(stage)||"tab".equals(stage)||"lookup".equals(stage))
+                    && autoFillRequested&&autoFillSteps++<8){
+                    handler.postDelayed(()->{
+                        if(portalVisible&&!isSource)prefillCurrent();
+                    },"lookup".equals(stage)?1650:650);
+                }else if("ready".equals(stage)){
+                    autoFillRequested=false;
+                    new AlertDialog.Builder(this).setTitle("Dados preparados")
+                        .setMessage(message+"\n\nVerifica a data de admissão e o número da Casa no formulário. A inscrição só é submetida quando carregares em «Adicionar» no portal.")
+                        .setPositiveButton("Compreendido",null).show();
+                }else if("missing".equals(stage)){
+                    autoFillRequested=false;
+                    alert("Dados em falta",message+"\n\nVolta à ficha do sócio, corrige e tenta novamente.");
+                }else if("manual".equals(stage)){
+                    autoFillRequested=false;
+                    progressText.setText("Abre Adicionar Membros e carrega novamente em Preencher dados");
+                }
+            }catch(Exception e){
+                autoFillRequested=false;
+                progressText.setText("Não foi possível preencher este formulário. Usa o botão para tentar novamente.");
+            }
         });
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
