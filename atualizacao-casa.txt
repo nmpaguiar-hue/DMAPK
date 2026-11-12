@@ -1,5 +1,0 @@
-versao=1.1.54
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk?version=1.1.54
-novidades=Passaporte Dragões Marcoenses com carimbos no estilo original, Museu e Sede sem data, três carimbos especiais, níveis mais exigentes e melhorias de administração.
-critica=nao
-versao_minima=1.1.31
