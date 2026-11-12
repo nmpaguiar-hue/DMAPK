@@ -194,6 +194,7 @@ public class MainActivity extends Activity {
         importPageButton = smallButton("Importar página",BLUE);
         importAllButton = smallButton("Importar lista",Color.rgb(31,93,152));
         importDetailsButton = smallButton("Ler ficha",Color.rgb(28,71,127));
+        // O registo final do FC Porto permanece dependente de confirmação humana.
         prefillButton = smallButton("Preencher dados",BLUE);
         buttonBar.addView(importPageButton,new LinearLayout.LayoutParams(0,dp(47),1f));
         LinearLayout.LayoutParams gap=new LinearLayout.LayoutParams(0,dp(47),1f);gap.leftMargin=dp(6);
@@ -362,6 +363,25 @@ public class MainActivity extends Activity {
         }
         @JavascriptInterface public void clearMembers(){getSharedPreferences(PREFS,MODE_PRIVATE).edit().remove("records").apply();}
         @JavascriptInterface public void openPortal(String kind,String id){runOnUiThread(()->MainActivity.this.openPortal(kind,id));}
+        @JavascriptInterface public String copyMember(String id){
+            JSONObject m=findById(id);if(m==null)return jsonReply(false,"Sócio não encontrado");
+            String content="DM Sync · Dados para inscrição\n"
+                +"Nome: "+m.optString("name")+"\n"
+                +"Número Casa: "+m.optString("number")+"\n"
+                +"Nº FC Porto: "+m.optString("fcp")+"\n"
+                +"Nº identificação: "+m.optString("ident")+"\n"
+                +"Email: "+m.optString("email")+"\n"
+                +"Data admissão na Casa: "+m.optString("join");
+            runOnUiThread(()->{
+                android.content.ClipboardManager cb=(android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+                if(cb!=null)cb.setPrimaryClip(android.content.ClipData.newPlainText("DM Sync",content));
+                Toast.makeText(MainActivity.this,"Dados copiados",Toast.LENGTH_SHORT).show();
+            });
+            return jsonReply(true,"");
+        }
+        @JavascriptInterface public String getMemberForPortal(String id){
+            JSONObject m=findById(id);if(m==null)return "{}";return m.toString();
+        }
         @JavascriptInterface public void importFile(){runOnUiThread(()->{
             Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.setType("*/*");i.addCategory(Intent.CATEGORY_OPENABLE);
             i.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"text/*","application/json","application/octet-stream"});
