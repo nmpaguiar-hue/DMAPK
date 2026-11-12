@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
     private WebView ui, portal;
     private LinearLayout portalLayer, buttonBar;
     private TextView portalTitle, progressText;
-    private Button importPageButton, importAllButton, prefillButton;
+    private Button importPageButton, importAllButton, importDetailsButton, prefillButton;
     private boolean portalVisible, isSource, importing;
     private String currentMemberId = "", lastPageKey = "";
     private int pageCount = 0, newCount = 0;
@@ -190,20 +190,25 @@ public class MainActivity extends Activity {
         bottom.addView(buttonBar,new LinearLayout.LayoutParams(-1,dp(50)));
         importPageButton = smallButton("Importar página",BLUE);
         importAllButton = smallButton("Importar lista",Color.rgb(31,93,152));
+        importDetailsButton = smallButton("Ler ficha",Color.rgb(28,71,127));
         prefillButton = smallButton("Preencher campos",BLUE);
         buttonBar.addView(importPageButton,new LinearLayout.LayoutParams(0,dp(47),1f));
         LinearLayout.LayoutParams gap=new LinearLayout.LayoutParams(0,dp(47),1f);gap.leftMargin=dp(6);
         buttonBar.addView(importAllButton,gap);
+        LinearLayout.LayoutParams third = new LinearLayout.LayoutParams(0,dp(47),1f);third.leftMargin=dp(6);
+        buttonBar.addView(importDetailsButton,third);
         buttonBar.addView(prefillButton,new LinearLayout.LayoutParams(0,dp(47),1f));
         importPageButton.setOnClickListener(v->importPage(false));
         importAllButton.setOnClickListener(v->startImportAll());
+        importDetailsButton.setOnClickListener(v->importDetails());
         prefillButton.setOnClickListener(v->prefillCurrent());
     }
     private void updateButtons(){
         importPageButton.setVisibility(isSource?View.VISIBLE:View.GONE);
         importAllButton.setVisibility(isSource?View.VISIBLE:View.GONE);
+        importDetailsButton.setVisibility(isSource?View.VISIBLE:View.GONE);
         prefillButton.setVisibility(!isSource&&currentMemberId.length()>0?View.VISIBLE:View.GONE);
-        importPageButton.setEnabled(!importing);importAllButton.setEnabled(!importing);
+        importPageButton.setEnabled(!importing);importAllButton.setEnabled(!importing);importDetailsButton.setEnabled(!importing);
     }
     private boolean onRightHost(boolean source) {
         Uri u=Uri.parse(portal.getUrl()==null?"":portal.getUrl());
@@ -365,6 +370,32 @@ public class MainActivity extends Activity {
                 }else if(all){stopAll("Importação concluída. Novos: "+newCount+".");}
                 else {new AlertDialog.Builder(this).setTitle("Registos lidos").setMessage("Registos nesta página: "+arr.length()+"\nNovos na base local: "+Math.max(0,after-before)+"\n\nVerifica as fichas na área de Sócios.").setPositiveButton("OK",null).show();}
             }catch(Exception e){stopAll("Não foi possível ler a tabela desta página.");}
+        });
+    }
+    private void importDetails(){
+        if(!onRightHost(true)){alert("Sem sessão","Abre a ficha de um sócio no portal dos Dragões Marcoenses.");return;}
+        String script = "(function(){"
+          + "var lines=(document.body.innerText||'').split(/\\n+/).map(s=>s.trim()).filter(Boolean);"
+          + "function next(label){var i=lines.findIndex(s=>s.toLowerCase()===label.toLowerCase());return i>=0?(lines[i+1]||''):''}"
+          + "function date(v){var m=(v||'').match(/(\\d\\d)\\/(\\d\\d)\\/(\\d{4})/);return m?(m[3]+'-'+m[2]+'-'+m[1]):''}"
+          + "var txt=document.body.innerText||'';"
+          + "var number=(txt.match(/S[oó]cio\\s*#\\s*(\\d+)/i)||[])[1]||'';"
+          + "var name=next('Nome Completo'),fcp=next('Número de Sócio FC Porto');"
+          + "var ident=next('Cartão de Cidadão'),birth=next('Data de Nascimento');"
+          + "var join=next('Data de Registo'),email=next('Email');"
+          + "if(!name||!number)return JSON.stringify({error:'Abre a ficha individual do sócio no portal antes de utilizar Ler ficha.'});"
+          + "return JSON.stringify({name:name,number:number,email:email,fcp:(fcp.match(/\\d+/)||[])[0]||'',"
+          + "ident:(ident.match(/[\\w-]+/)||[])[0]||'',birth:date(birth),join:date(join)})"
+          + "})()";
+        portal.evaluateJavascript(script,value->{
+            try{
+                JSONObject data=new JSONObject(String.valueOf(new JSONTokener(value).nextValue()));
+                if(data.has("error")){alert("Ficha não encontrada",data.optString("error"));return;}
+                JSONObject saved=new JSONObject(save(data,true));
+                if(!saved.optBoolean("ok")){alert("Importação",saved.optString("error"));return;}
+                ui.evaluateJavascript("window.refreshAll && window.refreshAll()",null);
+                alert("Ficha importada","Os dados da ficha foram guardados localmente.\n\nVerifica o número FC Porto, a identificação e a data de admissão antes da validação.");
+            }catch(Exception e){alert("Ficha não reconhecida","Esta página não apresenta os campos esperados. Podes editar os dados manualmente na área Sócios.");}
         });
     }
     private void startImportAll() {
