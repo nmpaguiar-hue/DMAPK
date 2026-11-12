@@ -1,3 +1,0 @@
-versao=1.1.12
-apk=https://raw.githubusercontent.com/nmpaguiar-hue/DMAPK/main/DMAPP_CASA.apk
-novidades=Correção de arranque nos Android recentes.
