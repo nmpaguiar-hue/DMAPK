@@ -128,7 +128,7 @@ public class MainActivity extends Activity {
     }
     private Button smallButton(String label, int bg) {
         Button b = new Button(this);
-        b.setText(label); b.setTextAllCaps(false); b.setTextSize(12);
+        b.setText(label); b.setAllCaps(false); b.setTextSize(12);
         b.setTextColor(Color.WHITE);b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(bg));
         b.setPadding(dp(7),0,dp(7),0);
         return b;
@@ -297,7 +297,7 @@ public class MainActivity extends Activity {
         } catch(Exception e){return jsonReply(false,"Não foi possível guardar o registo.");}
     }
     private synchronized String changeStatus(String id,String status){
-        if(!Set.of("novo","aprovado","aguarda_fc","concluido","rejeitado").contains(status))return jsonReply(false,"Estado inválido");
+        if(!java.util.Arrays.asList("novo","aprovado","aguarda_fc","concluido","rejeitado").contains(status))return jsonReply(false,"Estado inválido");
         try{
             JSONArray list=readList();
             for(int i=0;i<list.length();i++){
